@@ -9,4 +9,18 @@ Requires JDK 21 and Maven.
 
     mvn javafx:run
 
-The database file `lostit.db` is created automatically on first launch.
+The database file `lostit.db` and the `photos/` folder are created
+automatically on first launch.
+
+## Demo account
+
+On first launch an administrator account is created:
+
+    admin@campus.edu / admin123
+
+New users register as students from the login screen.
+
+## Credits
+
+Poppins font by the Poppins Project Authors, SIL Open Font License 1.1
+(see `src/main/resources/fonts/OFL.txt`).

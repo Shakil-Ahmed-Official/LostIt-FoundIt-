@@ -1,38 +1,39 @@
 package app;
 
 import app.db.DatabaseManager;
-import atlantafx.base.theme.PrimerLight;
-import atlantafx.base.theme.Styles;
+import app.service.AuthService;
+import app.ui.Navigator;
 import javafx.application.Application;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-        Application.setUserAgentStylesheet(
-                new PrimerLight().getUserAgentStylesheet());
         DatabaseManager.initialize();
+        new AuthService().seedAdminIfEmpty();
 
-        Label title = new Label("LostIt? FoundIt!");
-        title.getStyleClass().add(Styles.TITLE_1);
-
-        Label subtitle = new Label(
-            "Automated Lost-and-Found Matching for Campus Communities");
-        subtitle.getStyleClass().add(Styles.TEXT_MUTED);
-
-        VBox root = new VBox(8, title, subtitle);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(24));
+        loadFont("/fonts/Poppins-Regular.ttf");
+        loadFont("/fonts/Poppins-Bold.ttf");
 
         stage.setTitle("LostIt? FoundIt!");
-        stage.setScene(new Scene(root, 900, 600));
+        Navigator.init(stage);
+        Navigator.showLogin();
         stage.show();
+    }
+
+    private static void loadFont(String path) {
+        try (InputStream in = Main.class.getResourceAsStream(path)) {
+            if (in != null) {
+                Font.loadFont(in, 14);
+            }
+        } catch (IOException e) {
+            System.err.println("Could not load font " + path);
+        }
     }
 
     public static void main(String[] args) {
