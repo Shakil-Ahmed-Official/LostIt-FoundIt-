@@ -1,5 +1,6 @@
 package app.service;
 
+import app.dao.MatchDao;
 import app.dao.ReportDao;
 import app.model.Report;
 import app.model.ReportStatus;
@@ -14,8 +15,10 @@ import java.util.List;
 public class ReportService {
 
     private final ReportDao reports = new ReportDao();
+    private final MatchDao matches = new MatchDao();
+    private final MatchingService matching = new MatchingService();
 
-    public int submit(User user, ReportType type, String title,
+    public SubmitResult submit(User user, ReportType type, String title,
                       String category, String description, String zone,
                       LocalDate date, File photo) {
         String cleanTitle = title == null ? "" : title.trim();
@@ -47,22 +50,40 @@ public class ReportService {
         }
 
         String photoPath = photo == null ? null : PhotoStore.save(photo);
-        return reports.insert(user.id(), type, cleanTitle, category,
+        int id = reports.insert(user.id(), type, cleanTitle, category,
                 cleanText, zone, date, photoPath);
+
+        int found = 0;
+        try {
+            found = matching.matchNewReport(
+                    reports.findById(id).orElseThrow());
+        } catch (RuntimeException e) {
+            // a matching problem must never lose the report itself
+            e.printStackTrace();
+        }
+        return new SubmitResult(id, found);
     }
 
     public List<Report> listActive() {
         return reports.findActive();
     }
 
-    /** The owner of a report, or an admin, may withdraw it. */
+    /** The owner of a report, or an admin, may withdraw an OPEN report. */
     public void withdraw(User actor, Report report) {
+        // read the report again: the copy on screen may be out of date
+        Report current = reports.findById(report.id()).orElseThrow(
+                () -> new ServiceException("This report no longer exists."));
         boolean allowed = actor.role() == Role.ADMIN
-                || actor.id() == report.userId();
+                || actor.id() == current.userId();
         if (!allowed) {
             throw new ServiceException(
                     "You can only withdraw your own reports.");
         }
-        reports.updateStatus(report.id(), ReportStatus.CLOSED);
+        if (current.status() != ReportStatus.OPEN) {
+            throw new ServiceException("This report is already part of a "
+                    + "claim and cannot be withdrawn.");
+        }
+        reports.updateStatus(current.id(), ReportStatus.CLOSED);
+        matches.rejectPendingFor(current.id());
     }
 }

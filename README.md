@@ -12,11 +12,21 @@ Requires JDK 21 and Maven.
 The database file `lostit.db` and the `photos/` folder are created
 automatically on first launch.
 
-## Demo account
+## Test
+
+    mvn test
+
+## Demo accounts
 
 On first launch an administrator account is created:
 
     admin@campus.edu / admin123
+
+Sign in as the admin, open **Users** and press **Load sample data** to
+create four students (password `student123`) and eleven reports, some
+of which match each other:
+
+    rahim@campus.edu, karim@campus.edu, nusrat@campus.edu, tanvir@campus.edu
 
 New users register as students from the login screen.
 

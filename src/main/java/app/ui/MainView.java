@@ -4,6 +4,7 @@ import app.model.ReportType;
 import app.model.Role;
 import app.model.User;
 import app.service.AuthService;
+import app.service.NotificationService;
 import app.service.Session;
 import atlantafx.base.theme.Styles;
 import javafx.animation.FadeTransition;
@@ -28,6 +29,7 @@ public class MainView extends StackPane {
     private final StackPane content = new StackPane();
     private final ToggleGroup nav = new ToggleGroup();
     private ToggleButton galleryButton;
+    private ToggleButton notificationsButton;
 
     public MainView() {
         Toast.install(this);
@@ -40,6 +42,12 @@ public class MainView extends StackPane {
 
         galleryButton.setSelected(true);
         showGallery();
+
+        int unread = refreshBadge();
+        if (unread > 0) {
+            Toast.show("You have " + unread + " new notification"
+                    + (unread == 1 ? "" : "s"));
+        }
     }
 
     private VBox buildSidebar() {
@@ -65,10 +73,17 @@ public class MainView extends StackPane {
             }
         });
 
-        VBox menu = new VBox(6, galleryButton, lostButton, foundButton);
+        ToggleButton inboxButton = navButton("Match inbox",
+                () -> show(new MatchInboxView(this::show)));
+        notificationsButton = navButton("Notifications",
+                () -> show(new NotificationsView(this::refreshBadge)));
+
+        VBox menu = new VBox(6, galleryButton, lostButton, foundButton,
+                inboxButton, notificationsButton);
         if (user.role() == Role.ADMIN) {
-            menu.getChildren().add(navButton("Users",
-                    () -> show(new UserListView())));
+            menu.getChildren().addAll(
+                    navButton("Claims", () -> show(new AdminClaimsView())),
+                    navButton("Users", () -> show(new UserListView())));
         }
 
         Label name = new Label(user.fullName());
@@ -114,6 +129,14 @@ public class MainView extends StackPane {
     private void showGallery() {
         galleryButton.setSelected(true);
         show(new GalleryView());
+    }
+
+    /** Shows the number of unread notifications on the menu item. */
+    private int refreshBadge() {
+        int unread = new NotificationService().unreadCount(Session.get());
+        notificationsButton.setText(unread > 0
+                ? "Notifications (" + unread + ")" : "Notifications");
+        return unread;
     }
 
     private void show(Node view) {

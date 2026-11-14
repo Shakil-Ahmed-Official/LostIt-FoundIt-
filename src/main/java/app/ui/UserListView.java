@@ -2,13 +2,18 @@ package app.ui;
 
 import app.model.User;
 import app.service.AuthService;
+import app.service.DemoData;
+import app.service.ServiceException;
 import atlantafx.base.theme.Styles;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.util.function.Function;
@@ -35,7 +40,22 @@ public class UserListView extends VBox {
         table.getItems().addAll(new AuthService().listUsers());
         VBox.setVgrow(table, Priority.ALWAYS);
 
-        getChildren().addAll(new VBox(2, title, subtitle), table);
+        Button sample = new Button("Load sample data");
+        sample.getStyleClass().add("button-outlined");
+        sample.setOnAction(e -> {
+            try {
+                DemoData.load();
+                table.getItems().setAll(new AuthService().listUsers());
+                Toast.show("Sample data loaded: 4 students, 11 reports");
+            } catch (ServiceException ex) {
+                Toast.error(ex.getMessage());
+            }
+        });
+        Region fill = new Region();
+        HBox.setHgrow(fill, Priority.ALWAYS);
+        HBox header = new HBox(new VBox(2, title, subtitle), fill, sample);
+
+        getChildren().addAll(header, table);
     }
 
     private static TableColumn<User, String> column(String name, double width,

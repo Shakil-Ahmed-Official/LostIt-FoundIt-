@@ -13,5 +13,15 @@ public final class Catalog {
             "Auditorium", "Classroom Block", "Hostel", "Parking",
             "Other");
 
+    /** Zones that are close to each other share a cluster. */
+    public static String zoneCluster(String zone) {
+        return switch (zone) {
+            case "Main Building", "Classroom Block", "Library",
+                 "Auditorium" -> "ACADEMIC";
+            case "Cafeteria", "Playground" -> "SOCIAL";
+            default -> zone;
+        };
+    }
+
     private Catalog() { }
 }

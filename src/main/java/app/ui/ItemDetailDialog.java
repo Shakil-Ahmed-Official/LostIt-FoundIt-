@@ -1,6 +1,7 @@
 package app.ui;
 
 import app.model.Report;
+import app.model.ReportStatus;
 import app.model.Role;
 import app.model.User;
 import app.service.ReportService;
@@ -37,8 +38,9 @@ public final class ItemDetailDialog {
         pane.getButtonTypes().add(ButtonType.CLOSE);
 
         User me = Session.get();
-        boolean canWithdraw = me.role() == Role.ADMIN
-                || me.id() == report.userId();
+        boolean canWithdraw = (me.role() == Role.ADMIN
+                || me.id() == report.userId())
+                && report.status() == ReportStatus.OPEN;
         ButtonType withdraw = new ButtonType("Withdraw report",
                 ButtonBar.ButtonData.LEFT);
         if (canWithdraw) {

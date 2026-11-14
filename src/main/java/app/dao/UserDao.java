@@ -72,6 +72,23 @@ public class UserDao {
         }
     }
 
+    public List<Integer> findIdsByRole(Role role) {
+        List<Integer> ids = new ArrayList<>();
+        try (Connection c = DatabaseManager.getConnection();
+             PreparedStatement ps = c.prepareStatement(
+                     "SELECT id FROM users WHERE role = ?")) {
+            ps.setString(1, role.name());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ids.add(rs.getInt(1));
+                }
+            }
+            return ids;
+        } catch (SQLException e) {
+            throw new DataAccessException("Could not list users", e);
+        }
+    }
+
     public int count() {
         try (Connection c = DatabaseManager.getConnection();
              Statement st = c.createStatement();

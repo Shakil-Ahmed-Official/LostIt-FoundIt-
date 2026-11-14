@@ -4,6 +4,7 @@ import app.model.Catalog;
 import app.model.ReportType;
 import app.service.ReportService;
 import app.service.ServiceException;
+import app.service.SubmitResult;
 import app.service.Session;
 import atlantafx.base.theme.Styles;
 import javafx.geometry.Insets;
@@ -163,11 +164,17 @@ public class ReportFormView extends ScrollPane {
 
     private void submit() {
         try {
-            service.submit(Session.get(), type, title.getText(),
-                    category.getValue(), description.getText(),
-                    zone.getValue(), date.getValue(), photo);
-            Toast.show("Your " + type.label().toLowerCase()
-                    + " report was submitted");
+            SubmitResult result = service.submit(Session.get(), type,
+                    title.getText(), category.getValue(),
+                    description.getText(), zone.getValue(), date.getValue(),
+                    photo);
+            int matches = result.matchesFound();
+            Toast.show(matches == 0
+                    ? "Your " + type.label().toLowerCase()
+                            + " report was submitted"
+                    : "Report submitted. " + matches + " possible match"
+                            + (matches == 1 ? "" : "es")
+                            + " found! Check your Match inbox.");
             onSubmitted.run();
         } catch (ServiceException e) {
             error.setText(e.getMessage());
